@@ -1,3 +1,0 @@
-#!/bin/bash
-
-gcc -ansi -Wall -Wextra -Wpedantic -Werror pits.c functions.c -o main && ./main
