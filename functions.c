@@ -2,7 +2,7 @@
 #include "functions.h"
 #define NORTH 0
 #define SOUTH 1
-#define TEMP 0
+#define TEMP -10
 #define CLEARED 0 
 #define INDEX_PILE_POSITION (--pilePosition)
 #define FIRST_SOUTHERN_INDEX 0;
@@ -12,8 +12,6 @@
 #define NEXT_PILE (pilePosition + 1)
 #define CHECK_NEXT_PILE (current_pile_index + 1)
 #define PILE_IN_SOUTH (pilePosition <= LAST_SOUTHERN_PILE)
-#define WE_HAVE_PEBBLES (amountOfPebbles != 0)
-#define NO_PEBBLES (amountOfPebbles == 0)
 #define PEBBLES_IN_PILE (gameBoard[current_pile_index])
 #define NORTH_OUT_OF_INDEX 12
 #define SOUTH_OUT_OF_INDEX -1
@@ -22,28 +20,27 @@
 #define CURRENT_IS_NOT_NORTHERN_PILE (current_pile_index < FIRST_NORTHERN_PILE_INDEX)
 
 
+// collects the pebbles from the pile 
 void collect(int gameBoard[], int pilePosition, int currentlyCaptured[]) {
   int amountOfPebbles;
-
-  if (pilePosition == 0) {
+  if (pilePosition == 0) { // what is this for?
     printf("ERROR: INVALID PILE POSITION\n");
     return;
   }
-  amountOfPebbles = gameBoard[INDEX_PILE_POSITION]; /* gets the amount of pebbles in the specified current_pile_index */
-  gameBoard[pilePosition] = CLEARED; /* clear the current_pile_index */
-  drop(gameBoard, amountOfPebbles, 
-      pilePosition, currentlyCaptured); 
+  amountOfPebbles = gameBoard[INDEX_PILE_POSITION]; /* gets the amount of pebbles in 
+                                                       the specified current_pile_index */
+  gameBoard[pilePosition] = CLEARED;                /* clear the current_pile_index */
+  drop(gameBoard, amountOfPebbles, pilePosition, currentlyCaptured); 
 }
 
-/* will drop the pebbles on to the piles */
-void drop(int gameBoard[], int amountOfPebbles, 
-         int pilePosition, int currentlyCaptured[]) 
-{
+/* will drop the pebbles onto the piles */
+void drop(int gameBoard[], int amountOfPebbles, int pilePosition, int currentlyCaptured[]) {
   int current_pile_index = NEXT_PILE;
   int current_side = TEMP; /* 0 = north 1 = south */
   int original_side = TEMP;
 
-  if (PILE_IN_SOUTH) {  /* checks where the move started */ 
+  /* checks where the move started */ 
+  if (PILE_IN_SOUTH) {  
     original_side = SOUTH;
     current_side = SOUTH;
   } else {
@@ -51,23 +48,25 @@ void drop(int gameBoard[], int amountOfPebbles,
     current_side = NORTH;
   }
   
-  if (pilePosition == LAST_SOUTHERN_PILE) /* If the passed current_pile_index is the LAST one of the south */
-    current_side = NORTH;                    /* announce where the next_value side will be. */
-  else if (pilePosition == LAST_NORTHERN_PILE) {
+  /* If the current passed pile index is either index 5 (number 6) we know
+     we will have to drop the pebbles at index 7 which is now located in the north. */
+  if (pilePosition == LAST_SOUTHERN_PILE)  
+    current_side = NORTH;                    
+  else if (pilePosition == LAST_NORTHERN_PILE) { // same logic as before just for index 11 (number 12)
     current_side = SOUTH;
     current_pile_index = FIRST_SOUTHERN_INDEX;
   }
-
-  while (WE_HAVE_PEBBLES) { /* distribute pebbles */
+  /* distribute pebbles */
+  while (amountOfPebbles != 0) { 
     gameBoard[current_pile_index] += 1; /* adding one pebble to the current pile */
     amountOfPebbles--;
 
-    if (current_pile_index == LAST_SOUTHERN_PILE && WE_HAVE_PEBBLES) {
+    if (current_pile_index == LAST_SOUTHERN_PILE && amountOfPebbles != 0) {
       current_side = NORTH;
       current_pile_index++;
       printf("BYE\n");
       continue;
-    } else if (current_pile_index == LAST_NORTHERN_PILE && WE_HAVE_PEBBLES) {
+    } else if (current_pile_index == LAST_NORTHERN_PILE && amountOfPebbles != 0) {
       current_side = SOUTH;
       printf("HELLOOOOO\n");
       current_pile_index = FIRST_SOUTHERN_INDEX;
@@ -76,12 +75,10 @@ void drop(int gameBoard[], int amountOfPebbles,
 
     printf("%d\n", original_side);
 
-    if (NO_PEBBLES && 
-       (PEBBLES_IN_PILE == 2 || PEBBLES_IN_PILE == 3) && 
-       (original_side != current_side)) {
+    if (amountOfPebbles == 0 && (PEBBLES_IN_PILE == 2 || PEBBLES_IN_PILE == 3) && 
+        (original_side != current_side)) {
       printf("%d HLEO\n ", current_side);
-      capture(gameBoard, current_pile_index, 
-              currentlyCaptured, original_side);
+      capture(gameBoard, current_pile_index, currentlyCaptured, original_side);
       continue;
     }
     current_pile_index++; /* move to the next pile */
@@ -89,8 +86,7 @@ void drop(int gameBoard[], int amountOfPebbles,
 }
 
 
-void capture(int gameBoard[], int current_pile_index, 
-             int captured[], int original_side) 
+void capture(int gameBoard[], int current_pile_index, int captured[], int original_side) 
 {
   int previous_value = TEMP;
   int next_value = TEMP;
